@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Envelope Animation</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <!-- Google Fonts for handwritten font -->
+    <link href="https://fonts.googleapis.com/css2?family=Homemade+Apple&display=swap" rel="stylesheet">
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-image: url('https://i.imgur.com/ztRVBsH.jpeg'); /* Local image; replace with hosted URL for online use */
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        main {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start; /* Align envelope to left */
+            justify-content: center;
+            min-height: 100vh;
+            position: relative;
+            padding: 20px;
+        }
+
+        /* Envelope container */
+        .envelope {
+            width: 40vw; /* 40% of viewport width */
+            height: 26.67vw; /* Aspect ratio 1.5 (300:200) */
+            max-width: 600px;
+            max-height: 400px;
+            min-width: 200px;
+            min-height: 133.33px;
+            position: relative;
+            cursor: pointer;
+            perspective: 1000px;
+            margin-left: 20px; /* Small left margin */
+            margin-top: 20px;
+            margin-bottom: 20px;
+            z-index: 2; /* Envelope starts in front */
+        }
+
+        /* Envelope parts */
+        .envelope-front, .envelope-back, .envelope-flap {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.6s ease, opacity 0.6s ease;
+            transform-style: preserve-3d;
+            box-sizing: border-box;
+        }
+
+        .envelope-back {
+            background-color: #e0c4a8;
+            border: 2px solid #000; /* Black outline */
+            transform: rotateY(180deg);
+        }
+
+        .envelope-front {
+            background-color: #f4e4bc;
+            border: 2px solid #000; /* Black outline */
+            z-index: 2;
+        }
+
+        .envelope-flap {
+            background-color: #f4e4bc;
+            clip-path: polygon(0 0, 50% 100%, 100% 0);
+            border-left: 2px solid #000; /* Black outline for diagonal left */
+            border-right: 2px solid #000; /* Black outline for diagonal right */
+            border-top: 2px solid #000; /* Black outline for top */
+            border-bottom: none; /* No bottom border for opening */
+            transform-origin: top;
+            z-index: 3;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start; /* Align content to top */
+            padding-top: 40px; /* Space from top edge */
+        }
+
+        /* "Open Me" and heart in flap */
+        .open-me {
+            font-size: 24px;
+            color: #000;
+            text-align: center;
+            margin-bottom: 30px; /* Equidistant positioning */
+            transform: translateZ(10px); /* Faces user */
+            transition: opacity 0.3s ease;
+        }
+
+        .envelope.open .open-me {
+            opacity: 0; /* Disappear when envelope opens */
+        }
+
+        .heart {
+            position: absolute;
+            bottom: 10px;
+            font-size: 20px;
+            transform: translateZ(10px); /* Faces user */
+        }
+
+        /* A4 Letter (2x A4: 420x594px) */
+        .envelope-letter {
+            width: 420px;
+            height: 594px;
+            max-width: calc(100vw - 40px); /* Fit within viewport, account for right margin */
+            max-height: calc(100vh - 40px); /* Account for margins */
+            background-color: #fff;
+            border: 1px solid #ccc;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transform: translateX(0) scale(0.2); /* Start inside envelope */
+            opacity: 0;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 20px;
+            z-index: 1; /* Letter starts behind envelope */
+            position: absolute;
+            left: 50%; /* Start centered within envelope */
+            top: 50%;
+            transform-origin: center;
+            margin-top: calc(-297px); /* Center vertically (594px / 2) */
+            transition: transform 0.9s ease 0.3s, opacity 0.9s ease 0.3s, left 0.9s ease 0.3s; /* Sync with emojis */
+        }
+
+        /* Letter content */
+        .letter-content {
+            font-size: 18px;
+            color: #333;
+            max-height: calc(100% - 40px); /* Account for padding */
+            overflow-y: auto;
+            width: 100%;
+            box-sizing: border-box;
+            font-family: 'Homemade Apple', cursive; /* Handwritten font */
+            font-weight: normal; /* Less bold */
+            line-height: 1.6; /* Improve readability */
+        }
+
+        .letter-content p {
+            margin: 0 0 15px 0; /* Paragraph spacing */
+        }
+
+        /* Emoji fireworks */
+        .emoji {
+            position: absolute;
+            font-size: 30px; /* Larger for visibility */
+            left: 50%; /* Start at envelope center */
+            top: 50%;
+            transform: translate(-50%, -50%) translateZ(0); /* Center and start flat */
+            opacity: 0;
+            z-index: 6; /* Above letter */
+            pointer-events: none; /* Prevent interaction */
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.8); /* Glow for visibility */
+        }
+
+        /* Fireworks animation for emojis, synced with letter */
+        .envelope.open .emoji:nth-child(1) { animation: firework 0.9s ease forwards 0.3s; }
+        .envelope.open .emoji:nth-child(2) { animation: firework 0.9s ease forwards 0.31s; }
+        .envelope.open .emoji:nth-child(3) { animation: firework 0.9s ease forwards 0.32s; }
+        .envelope.open .emoji:nth-child(4) { animation: firework 0.9s ease forwards 0.33s; }
+        .envelope.open .emoji:nth-child(5) { animation: firework 0.9s ease forwards 0.34s; }
+        .envelope.open .emoji:nth-child(6) { animation: firework 0.9s ease forwards 0.35s; }
+        .envelope.open .emoji:nth-child(7) { animation: firework 0.9s ease forwards 0.36s; }
+        .envelope.open .emoji:nth-child(8) { animation: firework 0.9s ease forwards 0.37s; }
+        .envelope.open .emoji:nth-child(9) { animation: firework 0.9s ease forwards 0.38s; }
+        .envelope.open .emoji:nth-child(10) { animation: firework 0.9s ease forwards 0.39s; }
+        .envelope.open .emoji:nth-child(11) { animation: firework 0.9s ease forwards 0.4s; }
+        .envelope.open .emoji:nth-child(12) { animation: firework 0.9s ease forwards 0.41s; }
+        .envelope.open .emoji:nth-child(13) { animation: firework 0.9s ease forwards 0.42s; }
+        .envelope.open .emoji:nth-child(14) { animation: firework 0.9s ease forwards 0.43s; }
+        .envelope.open .emoji:nth-child(15) { animation: firework 0.9s ease forwards 0.44s; }
+        .envelope.open .emoji:nth-child(16) { animation: firework 0.9s ease forwards 0.45s; }
+        .envelope.open .emoji:nth-child(17) { animation: firework 0.9s ease forwards 0.46s; }
+        .envelope.open .emoji:nth-child(18) { animation: firework 0.9s ease forwards 0.47s; }
+        .envelope.open .emoji:nth-child(19) { animation: firework 0.9s ease forwards 0.48s; }
+        .envelope.open .emoji:nth-child(20) { animation: firework 0.9s ease forwards 0.49s; }
+        .envelope.open .emoji:nth-child(21) { animation: firework 0.9s ease forwards 0.5s; }
+        .envelope.open .emoji:nth-child(22) { animation: firework 0.9s ease forwards 0.51s; }
+        .envelope.open .emoji:nth-child(23) { animation: firework 0.9s ease forwards 0.52s; }
+        .envelope.open .emoji:nth-child(24) { animation: firework 0.9s ease forwards 0.53s; }
+
+        @keyframes firework {
+            0% {
+                opacity: 1;
+                transform: translate(-50%, -50%) translateZ(0) scale(1);
+            }
+            80% {
+                opacity: 0.8; /* Linger longer before fading */
+                transform: translate(-50%, -50%) translate(var(--tx, 0px), var(--ty, 0px)) translateZ(100px) scale(1.5);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) translate(var(--tx, 0px), var(--ty, 0px)) translateZ(100px) scale(1.5);
+            }
+        }
+
+        /* Open state */
+        .envelope.open {
+            z-index: 1; /* Envelope to background */
+        }
+
+        .envelope.open .envelope-flap {
+            transform: rotateX(180deg); /* Flap opens */
+        }
+
+        .envelope.open .envelope-letter {
+            left: calc(100% - 420px - 20px); /* Slide to far right with small margin */
+            transform: translateX(0) scale(1); /* Scale up */
+            opacity: 1;
+            z-index: 5; /* Letter below emojis */
+        }
+
+        /* Download button */
+        .download-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px; /* Bottom-right corner */
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #000;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            z-index: 7; /* Above all */
+        }
+
+        .download-btn:hover {
+            background-color: #333;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .envelope {
+                width: 60vw;
+                height: 40vw;
+                max-width: 400px;
+                max-height: 266.67px;
+                margin-left: 15px;
+            }
+
+            .envelope-letter {
+                width: 210px; /* 1x A4 */
+                height: 297px;
+                max-width: calc(100vw - 30px);
+                max-height: calc(100vh - 30px);
+                padding: 15px;
+                left: 50%; /* Start centered */
+                margin-top: calc(-148.5px); /* Center vertically (297px / 2) */
+            }
+
+            .envelope.open .envelope-letter {
+                left: calc(100% - 210px - 15px); /* Adjusted right margin */
+            }
+
+            .letter-content {
+                font-size: 14px;
+                max-height: calc(100% - 30px); /* Adjust for padding */
+            }
+
+            .open-me {
+                font-size: 18px;
+                margin-bottom: 20px;
+                padding-top: 30px;
+            }
+
+            .heart {
+                font-size: 16px;
+                bottom: 8px;
+            }
+
+            .download-btn {
+                padding: 8px 16px;
+                font-size: 14px;
+                right: 15px;
+                bottom: 15px;
+            }
+
+            .emoji {
+                font-size: 24px; /* Slightly smaller for tablets */
+            }
+        }
+
+        @media (max-width: 480px) {
+            .envelope {
+                width: 80vw;
+                height: 53.33vw;
+                max-width: 300px;
+                max-height: 200px;
+                margin-left: 10px;
+            }
+
+            .envelope-letter {
+                width: 150px;
+                height: 212px;
+                max-width: calc(100vw - 20px);
+                max-height: calc(100vh - 20px);
+                padding: 10px;
+                left: 50%; /* Start centered */
+                margin-top: calc(-106px); /* Center vertically (212px / 2) */
+            }
+
+            .envelope.open .envelope-letter {
+                left: calc(100% - 150px - 10px); /* Adjusted right margin */
+            }
+
+            .letter-content {
+                font-size: 12px;
+                max-height: calc(100% - 20px); /* Adjust for padding */
+            }
+
+            .open-me {
+                font-size: 14px;
+                margin-bottom: 15px;
+                padding-top: 20px;
+            }
+
+            .download-btn {
+                padding: 6px 12px;
+                font-size: 12px;
+                right: 10px;
+                bottom: 10px;
+            }
+
+            .emoji {
+                font-size: 20px; /* Smaller for mobile */
+            }
+        }
+    </style>
+</head>
+<body>
+    <main>
+        <div class="envelope" id="envelope">
+            <div class="envelope-back"></div>
+            <div class="envelope-front"></div>
+            <div class="envelope-flap">
+                <span class="open-me">Open Me</span>
+                <span class="heart">❤️</span>
+            </div>
+            <div class="envelope-letter" id="letter">
+                <div class="letter-content" id="letterContent"></div>
+            </div>
+            <!-- Emoji fireworks (mix of flowers and hearts, 24 total) -->
+            <span class="emoji">🌸</span>
+            <span class="emoji">❤️</span>
+            <span class="emoji">🌹</span>
+            <span class="emoji">💖</span>
+            <span class="emoji">🌷</span>
+            <span class="emoji">💕</span>
+            <span class="emoji">🌺</span>
+            <span class="emoji">💓</span>
+            <span class="emoji">🌻</span>
+            <span class="emoji">💗</span>
+            <span class="emoji">💐</span>
+            <span class="emoji">💞</span>
+            <span class="emoji">🌼</span>
+            <span class="emoji">❤️</span>
+            <span class="emoji">🪷</span>
+            <span class="emoji">💖</span>
+            <span class="emoji">🌸</span>
+            <span class="emoji">💕</span>
+            <span class="emoji">🌹</span>
+            <span class="emoji">💓</span>
+            <span class="emoji">🌷</span>
+            <span class="emoji">💗</span>
+            <span class="emoji">🌺</span>
+            <span class="emoji">💞</span>
+        </div>
+    </main>
+    <button class="download-btn" id="downloadBtn">Download Letter</button>
+
+    <script>
+        const { jsPDF } = window.jspdf;
+        const envelope = document.getElementById('envelope');
+        const letterContent = document.getElementById('letterContent');
+        const downloadBtn = document.getElementById('downloadBtn');
+
+        // Letter content with paragraphs
+        const letterText = [
+            `Dear Reader,`,
+            `This is a sample letter created for the envelope animation. The envelope is positioned to the left with a small margin. The letter slides horizontally from the envelope to the far right within the main body, leaving a small right margin. The phrase "Open Me" disappears when the envelope opens. A bundle of mixed flower and heart emojis now fires out like fireworks in front of the letter, synchronized with the letter's appearance. The letter uses a light handwritten font.`,
+            `Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.`,
+            `Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo.`,
+            `At vero eos et accusamus et iusto odio dignissimos ducimus qui blanditiis praesentium voluptatum deleniti atque corrupti quos dolores et quas molestias excepturi sint occaecati cupiditate non provident.`,
+            `You can download this letter as a PDF using the button in the bottom-right corner.`,
+            `Best regards,`,
+            `Grok`
+        ];
+
+        // Add paragraphs to letter content
+        letterText.forEach(paragraph => {
+            const p = document.createElement('p');
+            p.textContent = paragraph;
+            letterContent.appendChild(p);
+        });
+
+        // Toggle envelope open/close on click
+        envelope.addEventListener('click', () => {
+            envelope.classList.toggle('open');
+            // Reset emojis on close
+            if (!envelope.classList.contains('open')) {
+                document.querySelectorAll('.emoji').forEach(emoji => {
+                    emoji.style.opacity = '0';
+                    emoji.style.transform = 'translate(-50%, -50%) translateZ(0) scale(1)';
+                });
+            }
+        });
+
+        // Download letter as PDF
+        downloadBtn.addEventListener('click', () => {
+            const doc = new jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'a4'
+            });
+            doc.setFontSize(12);
+            doc.text(letterText.join('\n\n'), 10, 10, { maxWidth: 190 });
+            doc.save('letter.pdf');
+        });
+
+        // Randomize emoji translations for fireworks effect
+        document.querySelectorAll('.emoji').forEach(emoji => {
+            const tx = (Math.random() - 0.5) * 600; // Random x: -300px to 300px
+            const ty = (Math.random() - 0.5) * 600; // Random y: -300px to 300px
+            emoji.style.setProperty('--tx', `${tx}px`);
+            emoji.style.setProperty('--ty', `${ty}px`);
+        });
+    </script>
+</body>
+</html>
