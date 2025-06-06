@@ -11,7 +11,7 @@
         body {
             margin: 0;
             font-family: Arial, sans-serif;
-            background-image: url('https://i.imgur.com/ztRVBsH.jpeg'); /* Local image; replace with hosted URL for online use */
+            background-image: url('https://i.imgur.com/ztRVBsH.jpeg');
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
@@ -22,17 +22,16 @@
         main {
             display: flex;
             flex-direction: column;
-            align-items: flex-start; /* Align envelope to left */
+            align-items: flex-start;
             justify-content: center;
             min-height: 100vh;
             position: relative;
             padding: 20px;
         }
 
-        /* Envelope container */
         .envelope {
-            width: 40vw; /* 40% of viewport width */
-            height: 26.67vw; /* Aspect ratio 1.5 (300:200) */
+            width: 40vw;
+            height: 26.67vw;
             max-width: 600px;
             max-height: 400px;
             min-width: 200px;
@@ -40,13 +39,12 @@
             position: relative;
             cursor: pointer;
             perspective: 1000px;
-            margin-left: 20px; /* Small left margin */
+            margin-left: 20px;
             margin-top: 20px;
             margin-bottom: 20px;
-            z-index: 2; /* Envelope starts in front */
+            z-index: 2;
         }
 
-        /* Envelope parts */
         .envelope-front, .envelope-back, .envelope-flap {
             position: absolute;
             width: 100%;
@@ -58,108 +56,104 @@
 
         .envelope-back {
             background-color: #e0c4a8;
-            border: 2px solid #000; /* Black outline */
+            border: 2px solid #000;
             transform: rotateY(180deg);
         }
 
         .envelope-front {
             background-color: #f4e4bc;
-            border: 2px solid #000; /* Black outline */
+            border: 2px solid #000;
             z-index: 2;
         }
 
         .envelope-flap {
             background-color: #f4e4bc;
             clip-path: polygon(0 0, 50% 100%, 100% 0);
-            border-left: 2px solid #000; /* Black outline for diagonal left */
-            border-right: 2px solid #000; /* Black outline for diagonal right */
-            border-top: 2px solid #000; /* Black outline for top */
-            border-bottom: none; /* No bottom border for opening */
+            border-left: 2px solid #000;
+            border-right: 2px solid #000;
+            border-top: 2px solid #000;
+            border-bottom: none;
             transform-origin: top;
             z-index: 3;
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: flex-start; /* Align content to top */
-            padding-top: 40px; /* Space from top edge */
+            justify-content: flex-start;
+            padding-top: 40px;
         }
 
-        /* "Open Me" and heart in flap */
         .open-me {
             font-size: 24px;
             color: #000;
             text-align: center;
-            margin-bottom: 30px; /* Equidistant positioning */
-            transform: translateZ(10px); /* Faces user */
+            margin-bottom: 30px;
+            transform: translateZ(10px);
             transition: opacity 0.3s ease;
         }
 
         .envelope.open .open-me {
-            opacity: 0; /* Disappear when envelope opens */
+            opacity: 0;
         }
 
         .heart {
             position: absolute;
             bottom: 10px;
             font-size: 20px;
-            transform: translateZ(10px); /* Faces user */
+            transform: translateZ(10px);
         }
 
-        /* A4 Letter (2x A4: 420x594px) */
         .envelope-letter {
             width: 420px;
             height: 594px;
-            max-width: calc(100vw - 40px); /* Fit within viewport, account for right margin */
-            max-height: calc(100vh - 40px); /* Account for margins */
+            max-width: calc(100vw - 40px);
+            max-height: calc(100vh - 40px);
             background-color: #fff;
             border: 1px solid #ccc;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-            transform: translateX(0) scale(0.2); /* Start inside envelope */
+            transform: translateX(0) scale(0.2);
             opacity: 0;
             display: flex;
             align-items: flex-start;
             justify-content: center;
             padding: 20px;
-            z-index: 1; /* Letter starts behind envelope */
+            z-index: 1;
             position: absolute;
-            left: 50%; /* Start centered within envelope */
+            left: 50%;
             top: 50%;
             transform-origin: center;
-            margin-top: calc(-297px); /* Center vertically (594px / 2) */
-            transition: transform 0.9s ease 0.3s, opacity 0.9s ease 0.3s, left 0.9s ease 0.3s; /* Sync with emojis */
+            margin-top: calc(-297px);
+            transition: transform 0.9s ease 0.3s, opacity 0.9s ease 0.3s, left 0.9s ease 0.3s;
         }
 
-        /* Letter content */
         .letter-content {
             font-size: 18px;
             color: #333;
-            max-height: calc(100% - 40px); /* Account for padding */
+            max-height: calc(100% - 40px);
             overflow-y: auto;
             width: 100%;
             box-sizing: border-box;
-            font-family: 'Mrs Saint Delafield', cursive; /* Handwritten font */
-            font-weight: normal; /* Less bold */
-            line-height: 1.6; /* Improve readability */
+            font-family: 'Homemade Apple', cursive;
+            font-weight: normal;
+            line-height: 1.6;
+            text-align: justify; /* Justify text alignment */
         }
 
         .letter-content p {
-            margin: 0 0 15px 0; /* Paragraph spacing */
+            margin: 0 0 15px 0;
         }
 
-        /* Emoji fireworks */
         .emoji {
             position: absolute;
-            font-size: 30px; /* Larger for visibility */
-            left: 50%; /* Start at envelope center */
+            font-size: 30px;
+            left: 50%;
             top: 50%;
-            transform: translate(-50%, -50%) translateZ(0); /* Center and start flat */
+            transform: translate(-50%, -50%) translateZ(0);
             opacity: 0;
-            z-index: 6; /* Above letter */
-            pointer-events: none; /* Prevent interaction */
-            text-shadow: 0 0 5px rgba(255, 255, 255, 0.8); /* Glow for visibility */
+            z-index: 6;
+            pointer-events: none;
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
         }
 
-        /* Fireworks animation for emojis, synced with letter */
         .envelope.open .emoji:nth-child(1) { animation: firework 0.9s ease forwards 0.3s; }
         .envelope.open .emoji:nth-child(2) { animation: firework 0.9s ease forwards 0.31s; }
         .envelope.open .emoji:nth-child(3) { animation: firework 0.9s ease forwards 0.32s; }
@@ -191,7 +185,7 @@
                 transform: translate(-50%, -50%) translateZ(0) scale(1);
             }
             80% {
-                opacity: 0.8; /* Linger longer before fading */
+                opacity: 0.8;
                 transform: translate(-50%, -50%) translate(var(--tx, 0px), var(--ty, 0px)) translateZ(100px) scale(1.5);
             }
             100% {
@@ -200,27 +194,25 @@
             }
         }
 
-        /* Open state */
         .envelope.open {
-            z-index: 1; /* Envelope to background */
+            z-index: 1;
         }
 
         .envelope.open .envelope-flap {
-            transform: rotateX(180deg); /* Flap opens */
+            transform: rotateX(180deg);
         }
 
         .envelope.open .envelope-letter {
-            left: calc(100% - 420px - 20px); /* Slide to far right with small margin */
-            transform: translateX(0) scale(1); /* Scale up */
+            left: calc(100% - 420px - 20px);
+            transform: translateX(0) scale(1);
             opacity: 1;
-            z-index: 5; /* Letter below emojis */
+            z-index: 5;
         }
 
-        /* Download button */
         .download-btn {
             position: fixed;
             bottom: 20px;
-            right: 20px; /* Bottom-right corner */
+            right: 20px;
             padding: 10px 20px;
             font-size: 16px;
             cursor: pointer;
@@ -228,14 +220,13 @@
             color: #fff;
             border: none;
             border-radius: 5px;
-            z-index: 7; /* Above all */
+            z-index: 7;
         }
 
         .download-btn:hover {
             background-color: #333;
         }
 
-        /* Responsive adjustments */
         @media (max-width: 768px) {
             .envelope {
                 width: 60vw;
@@ -246,22 +237,23 @@
             }
 
             .envelope-letter {
-                width: 210px; /* 1x A4 */
+                width: 210px;
                 height: 297px;
                 max-width: calc(100vw - 30px);
                 max-height: calc(100vh - 30px);
                 padding: 15px;
-                left: 50%; /* Start centered */
-                margin-top: calc(-148.5px); /* Center vertically (297px / 2) */
+                left: 50%;
+                margin-top: calc(-148.5px);
             }
 
             .envelope.open .envelope-letter {
-                left: calc(100% - 210px - 15px); /* Adjusted right margin */
+                left: calc(100% - 210px - 15px);
             }
 
             .letter-content {
                 font-size: 14px;
-                max-height: calc(100% - 30px); /* Adjust for padding */
+                max-height: calc(100% - 30px);
+                text-align: justify; /* Maintain justified text */
             }
 
             .open-me {
@@ -283,7 +275,7 @@
             }
 
             .emoji {
-                font-size: 24px; /* Slightly smaller for tablets */
+                font-size: 24px;
             }
         }
 
@@ -302,17 +294,18 @@
                 max-width: calc(100vw - 20px);
                 max-height: calc(100vh - 20px);
                 padding: 10px;
-                left: 50%; /* Start centered */
-                margin-top: calc(-106px); /* Center vertically (212px / 2) */
+                left: 50%;
+                margin-top: calc(-106px);
             }
 
             .envelope.open .envelope-letter {
-                left: calc(100% - 150px - 10px); /* Adjusted right margin */
+                left: calc(100% - 150px - 10px);
             }
 
             .letter-content {
                 font-size: 12px;
-                max-height: calc(100% - 20px); /* Adjust for padding */
+                max-height: calc(100% - 20px);
+                text-align: justify; /* Maintain justified text */
             }
 
             .open-me {
@@ -329,7 +322,7 @@
             }
 
             .emoji {
-                font-size: 20px; /* Smaller for mobile */
+                font-size: 20px;
             }
         }
     </style>
@@ -381,23 +374,22 @@
         const letterContent = document.getElementById('letterContent');
         const downloadBtn = document.getElementById('downloadBtn');
 
-        // Letter content with paragraphs
+        // Letter content with paragraphs and line breaks
         const letterText = [
-                `Mon Amour,`,
-            `I wrote this letter because of the impact written words have and in an a way to open up a new medium of communication, and face my feelings.`,
+               `Mon Amour,`,
+            `I wrote this letter because of the impact written words have and in an a way to open up a new medium of communication, and confront my feelings.`,
             `Ever since our last call, my mind has been racing and an overwhelming urge of capturing my feelings has taken hold.`,
-            `I want to start by apologizing for the way I treated and neglected us. I realize now the pain and confusion some of my actions have generated, and I'm sorry.\nThe truth is that I am broken. Well, more like my emotional self is broken.\nI have been uncapable of managing my feelings, trying hard to control outcomes, that, in the end blow straight back into my face. And you have been at the center of it all. Im sorry.`,
-            `What I know is that I won't continue living this way. For too long I have been suffocated by an invisible weight, and it's now essential for me to break free.\nI need fixing up. By opening up to start with and take a deeper look into myself. And though this is my journey, I deeply want you by my side.`,
+            `hfjdjksfhjkfs.`<br>`The truth is that I am broken. Well, more like my emotional self is broken. `<br> ` I have been uncapable of managing my feelings, trying hard to control outcomes, that, in the end blow straight back into my face. And you have been at the center of it all. Im sorry.`,
+            `What I know is that I won't continue living this way. For too long I have been suffocated by an invisible weight, and it's now essential for me to break free.` <br> `I need fixing up. By opening up to start with and take a deeper look into myself. And though this is my journey, I deeply want you by my side.`,
             `My feelings for you have always been real. You are the first I think of in the morning and the last at night. You as the one I want to dream big with, and ther one I want ot make feel safe.`,
 
             `You have witnessed my worst vesion. I want to show you my best.`
-        
         ];
 
         // Add paragraphs to letter content
         letterText.forEach(paragraph => {
             const p = document.createElement('p');
-            p.textContent = paragraph;
+            p.innerHTML = paragraph; // Use innerHTML to render <br> tags
             letterContent.appendChild(p);
         });
 
@@ -420,8 +412,11 @@
                 unit: 'mm',
                 format: 'a4'
             });
+            doc.setFont('helvetica'); // Use default font for PDF
             doc.setFontSize(12);
-            doc.text(letterText.join('\n\n'), 10, 10, { maxWidth: 190 });
+            // Convert <br> to \n for PDF
+            const pdfText = letterText.map(text => text.replace(/<br>/g, '\n')).join('\n\n');
+            doc.text(pdfText, 10, 10, { maxWidth: 190 });
             doc.save('letter.pdf');
         });
 
