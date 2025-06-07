@@ -1,32 +1,129 @@
-   <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Envelope Animation</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <!-- Google Fonts for handwritten font -->
-    <link href="https://fonts.googleapis.com/css2?family=Homemade+Apple&display=swap" rel="stylesheet">
+    <title>You've Got Mail!</title>
+    <script src="./jspdf.umd.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Homemade+Apple&family=VT323&family=Bonheur+Royale&display=swap" rel="stylesheet">
     <style>
         body {
             margin: 0;
-            font-family: Arial, sans-serif;
-            background-image: url('https://i.imgur.com/ztRVBsH.jpeg');
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
+            background-color: #fff; /* White background for loading screen initially */
             min-height: 100vh;
             overflow-x: hidden;
+            font-family: Arial, sans-serif; /* Fallback for default font */
+        }
+        .container {
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px; /* Space between elements */
+            position: relative; /* For z-index context */
+            min-height: 100vh;
+            justify-content: center;
+            font-family: 'VT323', monospace; /* 90s computer font for loading screen */
+            background-color: #fff; /* Ensure container has a white background */
+            width: 100%; /* Take full width */
+            box-sizing: border-box; /* Include padding in width */
+            position: absolute; /* Position to fill the screen */
+            top: 0;
+            left: 0;
+            z-index: 4; /* Higher z-index than main to hide it initially */
+            transition: opacity 1s ease; /* For fading out the loading screen */
+        }
+        .button-container {
+            margin-bottom: 40px; /* Button positioned higher */
+            z-index: 1; /* Below loading elements */
+        }
+        .button {
+            padding: 10px 20px;
+            font-size: 24px;
+            background-color: #fff;
+            color: #000;
+            border: 2px solid #000;
+            border-radius: 0; /* Sharp edges for retro look */
+            cursor: pointer;
+            font-family: 'VT323', monospace; /* Apply VT323 specifically to the button */
+            text-transform: uppercase;
+            transition: background-color 0.3s, color 0.3s;
+        }
+        .button:hover {
+            background-color: #000;
+            color: #fff;
+        }
+        .arc-container {
+            display: none; /* Hidden until button click */
+            width: 300px; /* Match loading bar width */
+            height: 100px; /* Height for semicircular arc */
+            z-index: 2; /* Above button */
+        }
+        .loading-bar-container {
+            display: none; /* Hidden until button click */
+            width: 300px;
+            height: 30px;
+            background-color: #fff;
+            border: 2px solid #000; /* Black outline */
+            overflow: hidden;
+            display: flex;
+            gap: 2px;
+            padding: 2px;
+            z-index: 2; /* Above button */
+        }
+        .loading-bar {
+            display: flex;
+            width: 100%;
+            height: 100%;
+            gap: 2px;
+        }
+        .loading-block {
+            flex: 1;
+            background-color: #fff; /* Initially white */
+            transition: background-color 0s; /* Instant color change */
+        }
+        .loading-block.active {
+            background-color: #000; /* Black when active */
+        }
+        .arc-path {
+            fill: none;
+            stroke: #000;
+            stroke-width: 2;
+        }
+        .dot {
+            fill: #000;
+        }
+        .envelope-emoji-loading { /* Renamed to avoid conflict */
+            font-size: 16px;
+            fill: #000; /* Black emoji */
         }
 
+        /* Main content styles - will be active after loading */
         main {
             display: flex;
             flex-direction: column;
             align-items: flex-start;
             justify-content: center;
             min-height: 100vh;
-            position: relative;
+            position: absolute; /* Position to fill the screen */
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-image: url('https://i.imgur.com/ztRVBsH.jpeg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
             padding: 20px;
+            z-index: 3; /* Below loading screen initially */
+            opacity: 0; /* Hidden by default, fades in */
+            pointer-events: none; /* Prevent interaction until faded in */
+            transition: opacity 1s ease; /* Fade-in effect */
+            /* Default fallback for main body, but fonts below will override */
+            font-family: Arial, sans-serif;
+        }
+        main.active {
+            opacity: 1;
+            pointer-events: auto; /* Enable interaction when active */
         }
 
         .envelope {
@@ -82,13 +179,17 @@
             padding-top: 40px;
         }
 
+        /* Your provided styling for .open-me */
         .open-me {
-            font-size: 24px;
+            font-size: 32px; /* Made even bigger */
             color: #000;
             text-align: center;
             margin-bottom: 30px;
             transform: translateZ(10px);
             transition: opacity 0.3s ease;
+            /* Updated: Now uses Bonheur Royale font with slightly bolder weight */
+            font-family: 'Bonheur Royale', cursive;
+            font-weight: 700; /* Set to bolder weight if available, or just 'bold' */
         }
 
         .envelope.open .open-me {
@@ -125,15 +226,17 @@
             transition: transform 0.9s ease 0.3s, opacity 0.9s ease 0.3s, left 0.9s ease 0.3s;
         }
 
+        /* Your provided styling for .letter-content */
         .letter-content {
-            font-size: 18px;
+            font-size: 28px; /* Made even bigger */
             color: #333;
             max-height: calc(100% - 40px);
             overflow-y: auto;
             width: 100%;
             box-sizing: border-box;
-            font-family: 'Mrs Saint Delafield', cursive;
-            font-weight: normal;
+            /* Updated: Now uses Bonheur Royale font with slightly bolder weight */
+            font-family: 'Bonheur Royale', cursive;
+            font-weight: 400; /* Set to bolder weight if available, or just 'bold' */
             line-height: 1.6;
             text-align: justify; /* Justify text alignment */
         }
@@ -209,6 +312,7 @@
             z-index: 5;
         }
 
+        /* Styling for the download button/emoji */
         .download-btn {
             position: fixed;
             bottom: 20px;
@@ -221,11 +325,39 @@
             border: none;
             border-radius: 5px;
             z-index: 7;
+            opacity: 0; /* Initially hidden */
+            pointer-events: none; /* Prevent interaction when hidden */
+            transition: opacity 0.5s ease; /* Fade in effect */
         }
-
+        .download-btn.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
         .download-btn:hover {
             background-color: #333;
         }
+
+        /* Specific styling for the download emoji when active */
+        .download-btn.as-emoji {
+            background: none; /* No background */
+            border: none; /* No border */
+            color: transparent; /* Hide text */
+            font-size: 30px; /* Larger emoji size */
+            padding: 0; /* No padding */
+            width: 40px; /* Fixed width/height for emoji */
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1; /* Center the emoji vertically */
+            box-shadow: none; /* No shadow */
+        }
+        .download-btn.as-emoji::before {
+            content: attr(data-emoji); /* Display emoji from data-emoji attribute */
+            color: #000; /* Make emoji black */
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.8); /* Optional: text shadow for visibility */
+        }
+
 
         @media (max-width: 768px) {
             .envelope {
@@ -250,14 +382,16 @@
                 left: calc(100% - 210px - 15px);
             }
 
+            /* Your provided styling for .letter-content in media query */
             .letter-content {
-                font-size: 14px;
+                font-size: 18px; /* Adjusted for bigger on smaller screens */
                 max-height: calc(100% - 30px);
                 text-align: justify; /* Maintain justified text */
             }
 
+            /* Your provided styling for .open-me in media query */
             .open-me {
-                font-size: 18px;
+                font-size: 26px; /* Adjusted for bigger on smaller screens */
                 margin-bottom: 20px;
                 padding-top: 30px;
             }
@@ -267,11 +401,18 @@
                 bottom: 8px;
             }
 
+            /* Your provided styling for .download-btn in media query */
             .download-btn {
                 padding: 8px 16px;
                 font-size: 14px;
                 right: 15px;
                 bottom: 15px;
+            }
+
+            .download-btn.as-emoji {
+                font-size: 24px; /* Adjust emoji size for mobile */
+                width: 32px;
+                height: 32px;
             }
 
             .emoji {
@@ -302,23 +443,37 @@
                 left: calc(100% - 150px - 10px);
             }
 
+            /* Your provided styling for .letter-content in media query */
             .letter-content {
-                font-size: 12px;
+                font-size: 16px; /* Adjusted for bigger on smaller screens */
                 max-height: calc(100% - 20px);
                 text-align: justify; /* Maintain justified text */
             }
 
+            /* Your provided styling for .open-me in media query */
             .open-me {
-                font-size: 14px;
+                font-size: 20px; /* Adjusted for bigger on smaller screens */
                 margin-bottom: 15px;
                 padding-top: 20px;
             }
 
+            .heart {
+                font-size: 16px;
+                bottom: 8px;
+            }
+
+            /* Your provided styling for .download-btn in media query */
             .download-btn {
                 padding: 6px 12px;
                 font-size: 12px;
                 right: 10px;
                 bottom: 10px;
+            }
+
+            .download-btn.as-emoji {
+                font-size: 20px; /* Adjust emoji size for smaller mobile */
+                width: 28px;
+                height: 28px;
             }
 
             .emoji {
@@ -328,18 +483,35 @@
     </style>
 </head>
 <body>
-    <main>
+    <div class="container" id="loadingContainer">
+        <div class="arc-container" id="arcContainer">
+            <svg width="300" height="100" viewBox="0 0 300 100" preserveAspectRatio="xMidYMid meet">
+                <path id="arcPath" class="arc-path" d="M 20 90 A 140 140 0 0 1 280 90" />
+                <circle class="dot" cx="20" cy="90" r="4" /> <circle class="dot" cx="280" cy="90" r="4" /> <text id="envelopeSvgEmoji" class="envelope-emoji-loading">📩</text>
+            </svg>
+        </div>
+        <div class="loading-section">
+            <div class="loading-bar-container" id="loadingBar">
+                <div class="loading-bar" id="loadingBarInner">
+                    </div>
+            </div>
+        </div>
+        <div class="button-container">
+            <button id="receiveButton" class="button">You've Got Mail</button>
+        </div>
+    </div>
+
+    <main id="envelopeMain">
         <div class="envelope" id="envelope">
             <div class="envelope-back"></div>
             <div class="envelope-front"></div>
             <div class="envelope-flap">
-                <span class="open-me">Open Me</span>
+                <span class="open-me" id="openMeSpan">Open Me</span>
                 <span class="heart">❤️</span>
             </div>
             <div class="envelope-letter" id="letter">
                 <div class="letter-content" id="letterContent"></div>
             </div>
-            <!-- Emoji fireworks (mix of flowers and hearts, 24 total) -->
             <span class="emoji">🌸</span>
             <span class="emoji">❤️</span>
             <span class="emoji">🌹</span>
@@ -366,48 +538,139 @@
             <span class="emoji">💞</span>
         </div>
     </main>
-    <button class="download-btn" id="downloadBtn">Download Letter</button>
+    <button class="download-btn" id="downloadBtn" data-emoji="📥">Download Letter</button>
 
     <script>
-        const { jsPDF } = window.jspdf;
-        const envelope = document.getElementById('envelope');
-        const letterContent = document.getElementById('letterContent');
-        const downloadBtn = document.getElementById('downloadBtn');
+        // --- IMPORTANT: Robustness for jsPDF loading ---
+        // This makes sure the rest of your script runs even if jsPDF fails to load.
+        // The PDF download functionality will only work if window.jspdf.jsPDF is present.
+        let jsPDF_constructor = null; // Renamed to avoid conflicts and clearly state it's the constructor
+        if (window.jspdf && typeof window.jspdf.jsPDF === 'function') {
+            jsPDF_constructor = window.jspdf.jsPDF;
+            console.log("jsPDF library loaded successfully.");
+        } else {
+            console.error("jsPDF library (window.jspdf.jsPDF) not found. PDF download functionality will be disabled.");
+            // Disable or hide the download button if jsPDF isn't available
+            const downloadBtn = document.getElementById('downloadBtn'); // Ensure we get the element here
+            if (downloadBtn) {
+                downloadBtn.style.display = 'none'; // Hide the button
+                downloadBtn.disabled = true; // Disable it (though display:none typically handles this)
+                downloadBtn.textContent = '🚫'; // Optionally show a disabled emoji
+            }
+        }
+        // --- End jsPDF robustness ---
 
-        // Letter content with paragraphs and line breaks
+
+        // --- Loading Screen Elements ---
+        const loadingContainer = document.getElementById('loadingContainer');
+        const receiveButton = document.getElementById('receiveButton');
+        const loadingBar = document.getElementById('loadingBar');
+        const arcContainer = document.getElementById('arcContainer');
+        const arcPath = document.getElementById('arcPath');
+        const envelopeSvgEmoji = document.getElementById('envelopeSvgEmoji');
+        const loadingBarInner = document.getElementById('loadingBarInner'); // Corrected: ensure this is correctly initialized
+
+        // --- Envelope Elements ---
+        const envelopeMain = document.getElementById('envelopeMain');
+        const envelope = document.getElementById('envelope');
+        const openMeSpan = document.getElementById('openMeSpan');
+        const letterContent = document.getElementById('letterContent');
+        const downloadBtn = document.getElementById('downloadBtn'); // Re-get for consistent usage below if needed
+
+        // Create loading blocks
+        const numBlocks = 20;
+        for (let i = 0; i < numBlocks; i++) {
+            const block = document.createElement('div');
+            block.classList.add('loading-block');
+            loadingBarInner.appendChild(block);
+        }
+
+        // --- Loading Animation Function ---
+        function startLoading() {
+            const blocks = document.querySelectorAll('.loading-block');
+
+            // Show loading elements
+            receiveButton.style.display = 'none';
+            loadingBar.style.display = 'flex';
+            arcContainer.style.display = 'block';
+            envelopeSvgEmoji.style.display = 'block';
+
+            let blockIndex = 0;
+            const pathLength = arcPath.getTotalLength();
+            const totalTime = 10000; // 10 seconds
+            const stepTime = totalTime / numBlocks;
+
+            const interval = setInterval(() => {
+                // Update loading bar blocks
+                if (blockIndex < blocks.length) {
+                    blocks[blockIndex].classList.add('active');
+
+                    // Move envelope emoji along arc
+                    const progress = blockIndex / (numBlocks - 1);
+                    const point = arcPath.getPointAtLength(progress * pathLength);
+                    const nextPoint = arcPath.getPointAtLength(Math.min((progress + 0.001) * pathLength, pathLength));
+                    const angle = Math.atan2(nextPoint.y - point.y, nextPoint.x - point.x) * 180 / Math.PI;
+                    envelopeSvgEmoji.setAttribute('x', point.x - 8);
+                    envelopeSvgEmoji.setAttribute('y', point.y + 5);
+                    envelopeSvgEmoji.setAttribute('transform', `rotate(${angle + 90} ${point.x} ${point.y})`);
+
+                    blockIndex++;
+                }
+
+                // Transition to envelope animation
+                if (blockIndex >= blocks.length) {
+                    clearInterval(interval);
+                    // Hide loading elements
+                    loadingBar.style.display = 'none';
+                    arcContainer.style.display = 'none';
+                    envelopeSvgEmoji.style.display = 'none';
+
+                    // Fade out loading container
+                    loadingContainer.style.opacity = '0';
+                    loadingContainer.addEventListener('transitionend', () => {
+                        loadingContainer.style.display = 'none'; // Fully hide after fade
+                    }, { once: true }); // Ensure this listener only runs once
+
+                    // Fade in envelope main content
+                    envelopeMain.classList.add('active'); // This class controls opacity and pointer-events
+
+                    // Show and transform download button after main content fades in
+                    setTimeout(() => {
+                        // Only try to activate if the button wasn't already hidden due to jsPDF failure
+                        if (downloadBtn && !downloadBtn.disabled) {
+                            downloadBtn.classList.add('active'); // Fade in button
+                            downloadBtn.classList.add('as-emoji'); // Change to emoji style
+                        }
+                    }, 500); // Small delay to ensure main content is visible
+                }
+            }, stepTime);
+        }
+
+        // Attach click event listener to "You've Got Mail" button
+        receiveButton.addEventListener('click', startLoading);
+
+        // --- Envelope Animation Logic ---
         const letterText = [
-           `Mon Amour,`,
-            
-            `I wrote this letter because of the impact written words have and in an a way to open up a new medium of communication, and face my feelings.`,
+            `Mon Amour,`,
+            `I'm writing this letter because of the impact written words have and in an a way to open up a new medium of communication, and face my feelings.`,
             `Ever since our last call, my mind has been racing and an overwhelming urge of capturing my feelings has taken hold.`,
-            `I want to start by apologizing for the way I treated and neglected us. I realize now the pain and confusion some of my actions have generated, and I'm sorry.`,`The truth is that I am broken. Well, more like my emotional self is broken. It's clear that my struggle with managing my feelings drives my need to control outcomes, and this always backfires terribly. And you have been at the center of it all. It's so not right, the worst being with someone I so deeply love and respect.`,
+            `I want to start by apologizing for the way I treated and neglected us. I realize now the pain and confusion some of my actions have generated, and I'm sorry.`,`The truth is that I am broken. Well, more like my emotional self is broken. It's clear that my struggle with managing my feelings drives my need to control outcomes, and this always backfires terribly. It's so not right, especially with you being at the center of it all, someone I so deeply love and respect.`,
             `What I know is that I won't continue living this way. For too long I have been suffocated by an invisible weight, and it's now essential for me to break free. I need fixing up. By opening up to start with, and take a deeper look into myself. And though this is my journey, I deeply want you by my side.`,
             `My feelings for you have always been real. At the beginning as a friend and now as the one I first think of in the morning and the last at night. You are the one I want to dream big with, and the one I want to make feel safe.`,
-
             `You have witnessed my worst version. Let me show you my best.`,
-
-            `I am aware of how this sounds today, like an echoe from the past, and can't expect anything after the mess left behind. All I can hope for is to catch your attention again and prove you differently, this time. So much is about to radically change and me with it. I desire you and wish to share this new beginning with you and only you.`,
-
+            `I am aware of how this sounds today, like an echoe from the past, and I can't expect anything after the mess left behind. All I can hope for is to catch your attention again and prove you differently, this time. So much is about to radically change and me with it. I desire you and wish to share this new beginning with you and only you.`,
             `I wish to seduce you. I wish to make you fall in love with me again. I wish to repair.`,
-
             `Will you allow me to enter your world again?`,
-
             `I really dont know. But I'm going to try anyways. Respectfully.`,
-
             `I miss you. I love you`,
-
             `Damien`,
-
-            `PS: he's been my emotional support goat`
-            
-            
-            
+            `PS: The goat has been good emotional support`
         ];
 
         // Add paragraphs to letter content
         letterText.forEach(paragraph => {
             const p = document.createElement('p');
-            p.innerHTML = paragraph; // Use innerHTML to render <br> tags
+            p.innerHTML = paragraph;
             letterContent.appendChild(p);
         });
 
@@ -423,21 +686,6 @@
             }
         });
 
-        // Download letter as PDF
-        downloadBtn.addEventListener('click', () => {
-            const doc = new jsPDF({
-                orientation: 'portrait',
-                unit: 'mm',
-                format: 'a4'
-            });
-            doc.setFont('helvetica'); // Use default font for PDF
-            doc.setFontSize(12);
-            // Convert <br> to \n for PDF
-            const pdfText = letterText.map(text => text.replace(/<br>/g, '\n')).join('\n\n');
-            doc.text(pdfText, 10, 10, { maxWidth: 190 });
-            doc.save('letter.pdf');
-        });
-
         // Randomize emoji translations for fireworks effect
         document.querySelectorAll('.emoji').forEach(emoji => {
             const tx = (Math.random() - 0.5) * 600; // Random x: -300px to 300px
@@ -445,6 +693,41 @@
             emoji.style.setProperty('--tx', `${tx}px`);
             emoji.style.setProperty('--ty', `${ty}px`);
         });
+
+        // Download letter as PDF - now conditionally uses jsPDF_constructor
+        // Check if downloadBtn exists and jsPDF_constructor is available before attaching listener
+        if (downloadBtn && jsPDF_constructor) {
+            downloadBtn.addEventListener('click', () => {
+                const doc = new jsPDF_constructor({ // Use the obtained constructor
+                    orientation: 'portrait',
+                    unit: 'mm',
+                    format: 'a4'
+                });
+
+                doc.setFont('helvetica'); // Use default font for PDF
+                doc.setFontSize(12);
+
+                const margin = 10;
+                let y = margin;
+                const lineHeight = 7;
+                const maxWidth = 190;
+                const pageHeight = doc.internal.pageSize.height;
+
+                letterText.forEach(paragraph => {
+                    const splitText = doc.splitTextToSize(paragraph, maxWidth);
+                    splitText.forEach(line => {
+                        if (y + lineHeight > pageHeight - margin) {
+                            doc.addPage();
+                            y = margin;
+                        }
+                        doc.text(line, margin, y);
+                        y += lineHeight;
+                    });
+                    y += lineHeight; // Add extra space between paragraphs
+                });
+                doc.save('letter.pdf');
+            });
+        }
     </script>
 </body>
 </html>
